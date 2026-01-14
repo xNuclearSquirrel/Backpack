@@ -24,6 +24,7 @@
 
 #if defined(MAVLINK_ENABLED)
 #include <MAVLink.h>
+#include "crsf_mavlink_bridge.h"
 #endif
 
 /////////// GLOBALS ///////////
@@ -59,11 +60,13 @@ mspPacket_t cachedVTXPacket;
 mspPacket_t cachedHTPacket;
 #if defined(MAVLINK_ENABLED)
 MAVLink mavlink;
+CRSFMavlinkBridge crsfMavlinkBridge;
 #endif
 
 /////////// FUNCTION DEFS ///////////
 
 void sendMSPViaEspnow(mspPacket_t *packet);
+void SendMspViaMavlink(mspPacket_t *packet);
 
 /////////////////////////////////////
 
@@ -224,9 +227,13 @@ void ProcessMSPPacketFromTX(mspPacket_t *packet)
 
   case MSP_ELRS_BACKPACK_CRSF_TLM:
     DBGLN("Processing MSP_ELRS_BACKPACK_CRSF_TLM...");
-    if (config.GetTelemMode() != BACKPACK_TELEM_MODE_OFF)
+    if (config.GetTelemMode() == BACKPACK_TELEM_MODE_ESPNOW)
     {
       sendMSPViaEspnow(packet);
+    }
+    else if (config.GetTelemMode() == BACKPACK_TELEM_MODE_WIFI)
+    {
+      SendMspViaMavlink(packet);
     }
     break;
 
@@ -287,6 +294,18 @@ void sendMSPViaEspnow(mspPacket_t *packet)
 
   blinkLED();
 }
+
+#if defined(MAVLINK_ENABLED)
+void SendMspViaMavlink(mspPacket_t *packet)
+{
+  crsfMavlinkBridge.HandleTelemetry(packet->payload, packet->payloadSize, mavlink);
+}
+#else
+void SendMspViaMavlink(mspPacket_t *packet)
+{
+  (void)packet;
+}
+#endif
 
 void SendCachedMSP()
 {
