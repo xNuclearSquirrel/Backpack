@@ -2,7 +2,19 @@
 
 #if defined(MAVLINK_ENABLED)
 
+#include <MAVLink.h>
+
+#include "crsf_protocol.h"
 #include "logging.h"
+
+#define MAVLINK_SYSTEM_ID       1
+#define MAVLINK_COMPONENT_ID    1
+#define MAVLINK_SYSTEM_TYPE     1
+#define MAVLINK_AUTOPILOT_TYPE  3
+#define MAVLINK_SYSTEM_MODE     64
+#define MAVLINK_CUSTOM_MODE     0
+#define MAVLINK_SYSTEM_STATE    4
+#define MAVLINK_UPTIME          0
 
 void CRSFMavlinkBridge::HandleTelemetry(const uint8_t *payload, uint8_t payloadSize, MAVLink &mavlink)
 {
